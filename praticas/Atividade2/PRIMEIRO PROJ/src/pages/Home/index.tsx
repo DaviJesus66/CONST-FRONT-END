@@ -6,7 +6,6 @@ import { MainTemplate } from '../../templates/MainTemplate';
 export function Home() {
   return (
     <MainTemplate>
-      {/* Tudo o que está aqui dentro é o "children" que o template vai renderizar */}
       <Container>
         <CountDown />
       </Container>
