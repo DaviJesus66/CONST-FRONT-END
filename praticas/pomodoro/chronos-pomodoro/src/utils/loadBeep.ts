@@ -1,4 +1,4 @@
-import gravitationalBeep from '../assets/audios/gravitational_beep.mp3';
+import gravitationalBeep from '../assets/audios/diamond_tunes-cinematic-sound-effect-327618.mp3';
 
 /**
  * Prepares a short notification sound for playback in the browser.
