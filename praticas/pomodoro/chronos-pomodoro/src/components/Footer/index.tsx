@@ -1,4 +1,4 @@
-import styles from './styles.module.css';
+import styles from './style.module.css';
 import { RouterLink } from '../RouterLink';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router';
