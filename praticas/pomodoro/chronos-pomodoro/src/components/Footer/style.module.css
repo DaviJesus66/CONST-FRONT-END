@@ -16,3 +16,18 @@
   color: var(--text-muted);
   text-decoration: underline;
 }
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: var(--error);
+  font-size: 1.2rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  transition: filter 0.1s ease-in-out;
+}
+
+.logoutBtn:hover {
+  filter: brightness(80%);
+}
