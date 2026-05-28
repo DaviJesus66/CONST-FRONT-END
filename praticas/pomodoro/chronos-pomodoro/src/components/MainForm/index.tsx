@@ -30,7 +30,7 @@ export function MainForm() {
     }
 
     const nextCycle = getNextCycle(state.currentCycle);
-    const nextCyleType = getNextCycleType(nextCycle);
+    const nextCycleType = getNextCycleType(nextCycle);
 
     const newTask: TaskModel = {
       id: Date.now().toString(),
@@ -38,8 +38,8 @@ export function MainForm() {
       startDate: Date.now(),
       completeDate: null,
       interruptDate: null,
-      duration: state.config[nextCyleType],
-      type: nextCyleType,
+      duration: state.config[nextCycleType],
+      type: nextCycleType,
     };
 
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
@@ -56,7 +56,7 @@ export function MainForm() {
     <form onSubmit={handleCreateNewTask} className='form' action=''>
       <div className='formRow'>
         <DefaultInput
-          labelText='task'
+          labelText='Tarefa'
           id='meuInput'
           type='text'
           placeholder='Digite algo'

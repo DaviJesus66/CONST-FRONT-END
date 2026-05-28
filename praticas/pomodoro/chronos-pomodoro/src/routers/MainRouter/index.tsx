@@ -19,6 +19,7 @@ function ScrollToTop() {
 export function MainRouter() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/history/' element={<History />} />
@@ -26,7 +27,6 @@ export function MainRouter() {
         <Route path='/about-pomodoro/' element={<AboutPomodoro />} />
         <Route path='*' element={<NotFound />} />
       </Routes>
-      <ScrollToTop />
     </BrowserRouter>
   );
 }

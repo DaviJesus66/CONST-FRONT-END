@@ -1,7 +1,7 @@
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { getNextCycle } from '../../utils/getNextCycle';
 import { getNextCycleType } from '../../utils/getNextCycleType';
-import styles from './styles.module.css';
+import styles from './style.module.css';
 
 export function Cycles() {
   const { state } = useTaskContext();
@@ -10,7 +10,7 @@ export function Cycles() {
 
   const cycleDescriptionMap = {
     workTime: 'foco',
-    shortBreakTime: 'decanso curso',
+    shortBreakTime: 'descanso curto',
     longBreakTime: 'descanso longo',
   };
 

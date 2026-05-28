@@ -11,7 +11,7 @@ export const showMessage = {
   confirm: (data: string, onClosing: (confirmation: boolean) => void) =>
     toast(Dialog, {
       data,
-      onClose: confirmation => {
+      onClose: (confirmation: boolean) => {
         if (confirmation) return onClosing(true);
         return onClosing(false);
       },

@@ -1,4 +1,4 @@
-import styles from './styles.module.css';
+import styles from './style.module.css';
 
 type DefaultButtonProps = {
   icon: React.ReactNode;
