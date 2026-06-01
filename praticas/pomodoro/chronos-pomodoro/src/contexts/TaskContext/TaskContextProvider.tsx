@@ -14,11 +14,8 @@ type TaskContextProviderProps = {
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
   const [state, dispatch] = useReducer(taskReducer, initialTaskState, () => {
     const storageState = localStorage.getItem('state');
-
     if (storageState === null) return initialTaskState;
-
     const parsedStorageState = JSON.parse(storageState) as TaskStateModel;
-
     return {
       ...parsedStorageState,
       activeTask: null,
@@ -28,10 +25,29 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
   });
 
   const playBeepRef = useRef<ReturnType<typeof loadBeep> | null>(null);
-
-  const worker = TimerWorkerManager.getInstance();
+  // Guarda a referência da activeTask para não recriar o worker desnecessariamente
+  const activeTaskRef = useRef(state.activeTask);
 
   useEffect(() => {
+    activeTaskRef.current = state.activeTask;
+  }, [state.activeTask]);
+
+  // Salva no localStorage e atualiza o título sempre que o estado mudar
+  useEffect(() => {
+    localStorage.setItem('state', JSON.stringify(state));
+    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
+  }, [state]);
+
+  // Inicia o worker apenas quando a activeTask muda (nova tarefa ou interrupção)
+  useEffect(() => {
+    const worker = TimerWorkerManager.getInstance();
+
+    if (!state.activeTask) {
+      worker.terminate();
+      return;
+    }
+
+    // Registra o handler de mensagens do worker
     worker.onmessage(e => {
       const countDownSeconds = e.data;
 
@@ -40,10 +56,8 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
           playBeepRef.current();
           playBeepRef.current = null;
         }
-        dispatch({
-          type: TaskActionTypes.COMPLETE_TASK,
-        });
-        worker.terminate();
+        dispatch({ type: TaskActionTypes.COMPLETE_TASK });
+        TimerWorkerManager.getInstance().terminate();
       } else {
         dispatch({
           type: TaskActionTypes.COUNT_DOWN,
@@ -51,24 +65,18 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         });
       }
     });
-  }, [worker]);
 
-  useEffect(() => {
-    localStorage.setItem('state', JSON.stringify(state));
-
-    if (!state.activeTask) {
-      worker.terminate();
-    }
-
-    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
-
+    // Envia o estado inicial para o worker iniciar a contagem
     worker.postMessage(state);
-  }, [worker, state]);
 
+  // Só roda quando a activeTask muda, não a cada COUNT_DOWN
+  }, [state.activeTask]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Carrega o beep quando uma nova tarefa começa
   useEffect(() => {
     if (state.activeTask && playBeepRef.current === null) {
       playBeepRef.current = loadBeep();
-    } else {
+    } else if (!state.activeTask) {
       playBeepRef.current = null;
     }
   }, [state.activeTask]);

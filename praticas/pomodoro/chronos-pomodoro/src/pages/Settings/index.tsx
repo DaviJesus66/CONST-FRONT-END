@@ -19,7 +19,6 @@ export function Settings() {
     document.title = 'Configurações - Chronos Pomodoro';
   }, []);
 
-
   function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     showMessage.dismiss();

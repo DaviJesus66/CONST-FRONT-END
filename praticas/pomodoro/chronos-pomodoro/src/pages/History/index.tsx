@@ -45,9 +45,7 @@ export function History() {
 
   useEffect(() => {
     if (!confirmClearHistory) return;
-
     setConfirmClearHistory(false);
-
     dispatch({ type: TaskActionTypes.RESET_STATE });
   }, [confirmClearHistory, dispatch]);
 
