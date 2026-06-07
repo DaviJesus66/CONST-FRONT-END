@@ -1,35 +1,67 @@
 import { useCallback, useMemo, useState } from 'react';
-import { AuthContext } from './AuthContext';
-import { validateMockLogin } from '../../utils/validateMockLogin';
+import { AuthContext, type AuthUser } from './AuthContext';
+import { api } from '../../services/api';
 
-const STORAGE_KEY = 'chronos-auth';
+const TOKEN_KEY = 'token';
+const USER_KEY  = 'user';
 
-export function AuthContextProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    () => sessionStorage.getItem(STORAGE_KEY) === '1',
+export function AuthContextProvider({ children }: { children: React.ReactNode }) {
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem(TOKEN_KEY),
   );
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem(USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
 
-  const login = useCallback((username: string, password: string): boolean => {
-    const ok = validateMockLogin(username, password);
-    if (ok) {
-      sessionStorage.setItem(STORAGE_KEY, '1');
-      setIsAuthenticated(true);
+  const isAuthenticated = !!token;
+
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    try {
+      const data = await api.post<{ token: string; user: AuthUser }>(
+        '/auth/login',
+        { email, password },
+      );
+      localStorage.setItem(TOKEN_KEY, data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      setToken(data.token);
+      setUser(data.user);
+      return true;
+    } catch {
+      return false;
     }
-    return ok;
+  }, []);
+
+  const register = useCallback(async (
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<boolean> => {
+    try {
+      const data = await api.post<{ token: string; user: AuthUser }>(
+        '/auth/register',
+        { name, email, password },
+      );
+      localStorage.setItem(TOKEN_KEY, data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      setToken(data.token);
+      setUser(data.user);
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(STORAGE_KEY);
-    setIsAuthenticated(false);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken(null);
+    setUser(null);
   }, []);
 
   const value = useMemo(
-    () => ({ isAuthenticated, login, logout }),
-    [isAuthenticated, login, logout],
+    () => ({ isAuthenticated, user, login, register, logout }),
+    [isAuthenticated, user, login, register, logout],
   );
 
   return (

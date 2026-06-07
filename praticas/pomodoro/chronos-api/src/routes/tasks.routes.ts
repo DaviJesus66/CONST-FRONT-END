@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
 export const tasksRouter = Router();
 
-// GET /tasks — lista todas as tasks ordenadas por data de início
-tasksRouter.get('/', async (_req, res) => {
+// Todas as rotas de tasks exigem autenticação
+tasksRouter.use(authMiddleware);
+
+// GET /tasks
+tasksRouter.get('/', async (req, res) => {
   const tasks = await prisma.task.findMany({
+    where: { userId: req.userId },
     orderBy: { startDate: 'desc' },
   });
 
-  // Converte BigInt para number antes de serializar
   const serialized = tasks.map(task => ({
     ...task,
     startDate: Number(task.startDate),
@@ -20,7 +24,7 @@ tasksRouter.get('/', async (_req, res) => {
   return res.json(serialized);
 });
 
-// POST /tasks — cria uma nova task
+// POST /tasks
 tasksRouter.post('/', async (req, res) => {
   const { id, name, duration, type, startDate } = req.body as {
     id: string;
@@ -35,7 +39,14 @@ tasksRouter.post('/', async (req, res) => {
   }
 
   const task = await prisma.task.create({
-    data: { id, name, duration, type, startDate: BigInt(startDate) },
+    data: {
+      id,
+      name,
+      duration,
+      type,
+      startDate: BigInt(startDate),
+      userId: req.userId!,
+    },
   });
 
   return res.status(201).json({
@@ -46,7 +57,7 @@ tasksRouter.post('/', async (req, res) => {
   });
 });
 
-// PATCH /tasks/:id/complete — marca task como concluída
+// PATCH /tasks/:id/complete
 tasksRouter.patch('/:id/complete', async (req, res) => {
   const { id } = req.params;
   const { completeDate } = req.body as { completeDate: number };
@@ -57,7 +68,7 @@ tasksRouter.patch('/:id/complete', async (req, res) => {
 
   try {
     const task = await prisma.task.update({
-      where: { id },
+      where: { id, userId: req.userId },
       data: { completeDate: BigInt(completeDate) },
     });
 
@@ -72,7 +83,7 @@ tasksRouter.patch('/:id/complete', async (req, res) => {
   }
 });
 
-// PATCH /tasks/:id/interrupt — marca task como interrompida
+// PATCH /tasks/:id/interrupt
 tasksRouter.patch('/:id/interrupt', async (req, res) => {
   const { id } = req.params;
   const { interruptDate } = req.body as { interruptDate: number };
@@ -83,7 +94,7 @@ tasksRouter.patch('/:id/interrupt', async (req, res) => {
 
   try {
     const task = await prisma.task.update({
-      where: { id },
+      where: { id, userId: req.userId },
       data: { interruptDate: BigInt(interruptDate) },
     });
 
@@ -98,8 +109,8 @@ tasksRouter.patch('/:id/interrupt', async (req, res) => {
   }
 });
 
-// DELETE /tasks — apaga todo o histórico
-tasksRouter.delete('/', async (_req, res) => {
-  await prisma.task.deleteMany();
+// DELETE /tasks
+tasksRouter.delete('/', async (req, res) => {
+  await prisma.task.deleteMany({ where: { userId: req.userId } });
   return res.status(204).send();
 });
